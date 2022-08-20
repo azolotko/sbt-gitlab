@@ -37,6 +37,7 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.util.CopyProgressListener;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
+import scala.Function1;
 import scala.collection.Seq;
 
 // copied from org.apache.ivy.util.url.BasicURLHandler
@@ -49,13 +50,19 @@ public class GitlabURLHandler extends AbstractURLHandler {
 
     private void setGitlabHeader(HttpURLConnection conn) {
         gitlabCredentials
-                .find((GitlabCredentials c) -> {
-                    var host = conn.getURL().getHost();
-                    return host.equals(c.domain()) || host.endsWith("." + c.domain());
+                .find(new Function1<GitlabCredentials, Object>() {
+                    @Override
+                    public Object apply(GitlabCredentials c) {
+                        String host = conn.getURL().getHost();
+                        return host.equals(c.domain()) || host.endsWith("." + c.domain());
+                    }
                 })
-                .foreach(c -> {
-                    conn.setRequestProperty(c.key(), c.value());
-                    return c;
+                .foreach(new Function1<GitlabCredentials, Object>() {
+                    @Override
+                    public Object apply(GitlabCredentials c) {
+                        conn.setRequestProperty(c.key(), c.value());
+                        return c;
+                    }
                 });
     }
 
