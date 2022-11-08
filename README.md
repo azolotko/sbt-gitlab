@@ -25,7 +25,7 @@ gitlabDomain := "gitlab.your-company.com"
 You can either put your credentials directly into build.sbt (not recommended):
 
 ```scala
-gitlabCredentials := Some(GitlabCredentials(gitlabDomain.value, "Private-Token", "<ACCESS-TOKEN>"))
+gitlabCredentials := GitlabCredentials(gitlabDomain.value, "Private-Token", "<ACCESS-TOKEN>").some
 ```
 
 Or, keep them out of your source control:
