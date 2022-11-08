@@ -318,7 +318,7 @@ public class GitlabURLHandler extends AbstractURLHandler {
         }
     }
 
-    private String getHeadersAsDebugString(Map<String, List<String>> headers) throws IOException {
+    private String getHeadersAsDebugString(Map<String, List<String>> headers) {
         StringBuilder builder = new StringBuilder();
 
         if (headers != null) {
