@@ -20,7 +20,6 @@ package org.apache.ivy.util.url;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,6 +27,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.net.URLDecoder;
@@ -37,7 +37,6 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.util.CopyProgressListener;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
-import scala.Function1;
 import scala.collection.Seq;
 
 // copied from org.apache.ivy.util.url.BasicURLHandler
@@ -50,19 +49,13 @@ public class GitlabURLHandler extends AbstractURLHandler {
 
     private void setGitlabHeader(HttpURLConnection conn) {
         gitlabCredentials
-                .find(new Function1<GitlabCredentials, Object>() {
-                    @Override
-                    public Object apply(GitlabCredentials c) {
-                        String host = conn.getURL().getHost();
-                        return host.equals(c.domain()) || host.endsWith("." + c.domain());
-                    }
+                .find(c -> {
+                    String host = conn.getURL().getHost();
+                    return host.equals(c.domain()) || host.endsWith("." + c.domain());
                 })
-                .foreach(new Function1<GitlabCredentials, Object>() {
-                    @Override
-                    public Object apply(GitlabCredentials c) {
-                        conn.setRequestProperty(c.key(), c.value());
-                        return c;
-                    }
+                .foreach(c -> {
+                    conn.setRequestProperty(c.key(), c.value());
+                    return c;
                 });
     }
 
@@ -139,8 +132,8 @@ public class GitlabURLHandler extends AbstractURLHandler {
 
         if (contentType != null) {
             String[] elements = contentType.split(";");
-            for (int i = 0; i < elements.length; i++) {
-                String element = elements[i].trim();
+            for (String s : elements) {
+                String element = s.trim();
                 if (element.toLowerCase().startsWith("charset=")) {
                     charSet = element.substring("charset=".length());
                 }
@@ -297,17 +290,12 @@ public class GitlabURLHandler extends AbstractURLHandler {
             conn.setInstanceFollowRedirects(true);
 
             Message.debug("Request Headers:" + getHeadersAsDebugString(conn.getRequestProperties()));
-            InputStream in = new FileInputStream(source);
-            try {
+
+            try (InputStream in = Files.newInputStream(source.toPath())) {
                 OutputStream os = conn.getOutputStream();
                 FileUtil.copy(in, os, l);
-            } finally {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    /* ignored */
-                }
             }
+            /* ignored */
 
             // initiate the connection
             int responseCode = conn.getResponseCode();
@@ -331,7 +319,7 @@ public class GitlabURLHandler extends AbstractURLHandler {
     }
 
     private String getHeadersAsDebugString(Map<String, List<String>> headers) throws IOException {
-        StringBuilder builder = new StringBuilder("");
+        StringBuilder builder = new StringBuilder();
 
         if (headers != null) {
             for (Map.Entry<String, List<String>> header : headers.entrySet()) {
@@ -361,7 +349,7 @@ public class GitlabURLHandler extends AbstractURLHandler {
                 count += 1;
                 b = decodingStream.read();
             }
-            return new String(os.toByteArray(), charSet);
+            return os.toString(charSet);
         } finally {
             try {
                 is.close();
@@ -397,23 +385,14 @@ public class GitlabURLHandler extends AbstractURLHandler {
     private void readResponseBody(HttpURLConnection conn) {
         byte[] buffer = new byte[BUFFER_SIZE];
 
-        InputStream inStream = null;
-        try {
-            inStream = conn.getInputStream();
+        try (InputStream inStream = conn.getInputStream()) {
             while (inStream.read(buffer) > 0) {
                 //Skip content
             }
         } catch (IOException e) {
             // ignore
-        } finally {
-            if (inStream != null) {
-                try {
-                    inStream.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
         }
+        // ignore
 
         InputStream errStream = conn.getErrorStream();
         if (errStream != null) {

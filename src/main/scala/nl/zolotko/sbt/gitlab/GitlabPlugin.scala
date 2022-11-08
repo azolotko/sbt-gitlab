@@ -91,7 +91,7 @@ object GitlabPlugin extends AutoPlugin {
         )
     }
 
-  private lazy val gitlabProjectSettings: Seq[Def.Setting[_]] = {
+  private lazy val gitlabProjectSettings: Seq[Def.Setting[?]] = {
     val gitlabProjectId = sys.env.get("CI_PROJECT_ID").map(GitlabProjectId.apply)
 
     Seq(
