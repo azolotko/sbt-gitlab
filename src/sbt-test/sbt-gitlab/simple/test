@@ -1,1 +1,2 @@
-> run
+> set useCoursier := true; run
+> set useCoursier := false; run

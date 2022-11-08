@@ -71,6 +71,18 @@ public class GitlabURLHandler extends AbstractURLHandler {
         }
     }
 
+    public static class URLInfo extends URLHandler.URLInfo {
+        public static final URLInfo UNAVAILABLE = new URLInfo(false, 0, 0);
+
+        protected URLInfo(boolean available, long contentLength, long lastModified, String bodyCharset) {
+            super(available, contentLength, lastModified, bodyCharset);
+        }
+
+        protected URLInfo(boolean available, long contentLength, long lastModified) {
+            this(available, contentLength, lastModified, null);
+        }
+    }
+
     public URLInfo getURLInfo(URL url) {
         return getURLInfo(url, 0);
     }
@@ -100,7 +112,7 @@ public class GitlabURLHandler extends AbstractURLHandler {
             } else {
                 int contentLength = con.getContentLength();
                 if (contentLength <= 0) {
-                    return UNAVAILABLE;
+                    return URLInfo.UNAVAILABLE;
                 } else {
                     // TODO: not HTTP... maybe we *don't* want to default to ISO-8559-1 here?
                     String bodyCharset = getCharSetFromContentType(con.getContentType());
@@ -116,7 +128,7 @@ public class GitlabURLHandler extends AbstractURLHandler {
         } finally {
             disconnect(con);
         }
-        return UNAVAILABLE;
+        return URLInfo.UNAVAILABLE;
     }
 
     /**
