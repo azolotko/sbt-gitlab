@@ -86,7 +86,8 @@ object GitlabPlugin extends AutoPlugin {
         .find(_.domain == repo.gitlabDomain)
         .fold(cfg)(token =>
           cfg.withAuthenticationByRepositoryId(
-            Vector(repo.resolverName -> Authentication("", "").withHeaders(Seq(token.key -> token.value)))
+            cfg.authenticationByRepositoryId :+
+              (repo.resolverName -> Authentication("", "").withHeaders(Seq(token.key -> token.value)))
           )
         )
     }
