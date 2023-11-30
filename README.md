@@ -56,11 +56,10 @@ gitlabRepositories ++= Seq(
 )
 ```
 
-### Publishing to GitLab via GitLab CI/CD
+### Publishing from GitLab CI/CD
 
-Utilizing the sbt publish command within GitLab CI/CD should require no additional configuration. This plugin
-automatically pulls the following GitLab environment variables which should always be provided by default within GitLab
-Pipelines
+Doing `sbt publish` from GitLab CI/CD should require no additional configuration.
+This plugin automatically pulls the following GitLab environment variables provided by GitLab Pipelines:
 
 ```shell
 $CI_JOB_TOKEN   # Access Token to authorize read/writes to the GitLab package registry
@@ -69,6 +68,17 @@ $CI_GROUP_ID    # GitLab Group ID. Used for fetching Artifacts published under t
                 # In a pipeline this would be set to the id of the group the project is under (when applicable)
 $CI_SERVER_HOST # The host name for GitLab defaults to gitlab.com
 ```
+
+### Publishing outside GitLab CI/CD
+
+For `sbt publish` to work outside GitLab CI/CD, at least `gitlabDomain` and `gitlabProjectId` need to be defined:
+
+```sbt
+gitlabDomain := "gitlab.your-company.com"
+gitlabProjectId := GitlabProjectId("unicorn").some
+```
+
+(remember to set up the [Credentials](#Credentials))
 
 ### Testing
 
