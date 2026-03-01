@@ -1,3 +1,5 @@
+# The project is now **archived**, because [GitLab supports sbt natively](https://github.com/azolotko/sbt-gitlab/issues/96).
+
 # sbt-gitlab
 
 GitLab dependency resolution and artifact publishing for sbt.
